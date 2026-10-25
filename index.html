@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clarity Reader — Glasses-Free Screen Reader</title>
+  <meta name="theme-color" content="#ffe600">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg-color: #0d0d0d;
+      --text-color: #ffe600;
+      --panel-bg: #181818;
+      --panel-border: #333333;
+      --card-bg: #141414;
+      --border-color: #ffe600;
+      --btn-bg: #242424;
+      --btn-text: #ffffff;
+      --btn-hover: #333333;
+      --accent: #ffe600;
+      --font-size: 34px;
+      --line-height: 1.7;
+      --letter-spacing: 0.05em;
+      --font-family: Verdana, Geneva, "Trebuchet MS", sans-serif;
+      --stroke-weight: 0.3px;
+      --contrast-level: 115%;
+      --text-shadow-acutance: 0 0 0.5px currentColor;
+    }
+
+    /* High Contrast Presets */
+    body.theme-yellow-black {
+      --bg-color: #000000;
+      --text-color: #fffb00;
+      --panel-bg: #121212;
+      --panel-border: #ffe600;
+      --card-bg: #0a0a0a;
+      --border-color: #ffe600;
+      --btn-bg: #202020;
+      --btn-text: #ffffff;
+      --btn-hover: #303030;
+      --accent: #fffb00;
+    }
+
+    body.theme-dark {
+      --bg-color: #0d1117;
+      --text-color: #f0f6fc;
+      --panel-bg: #161b22;
+      --panel-border: #30363d;
+      --card-bg: #0d1117;
+      --border-color: #38444d;
+      --btn-bg: #21262d;
+      --btn-text: #f0f6fc;
+      --btn-hover: #30363d;
+      --accent: #58a6ff;
+    }
+
+    body.theme-light {
+      --bg-color: #f4efe6;
+      --text-color: #111111;
+      --panel-bg: #ffffff;
+      --panel-border: #dcd6cc;
+      --card-bg: #fcfbf8;
+      --border-color: #c8c0b4;
+      --btn-bg: #eae4d8;
+      --btn-text: #1a1a1a;
+      --btn-hover: #ded6c8;
+      --accent: #c45500;
+    }
+
+    body.theme-amber {
+      --bg-color: #0c0804;
+      --text-color: #ffb44a;
+      --panel-bg: #191209;
+      --panel-border: #523714;
+      --card-bg: #120d06;
+      --border-color: #523714;
+      --btn-bg: #291c0d;
+      --btn-text: #ffdeb3;
+      --btn-hover: #3b2813;
+      --accent: #ffb44a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      line-height: 1.5;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background-color: var(--panel-bg);
+      border-bottom: 2px solid var(--panel-border);
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.8;
+      color: var(--text-color);
+      margin-left: 6px;
+    }
+
+    .header-quick-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* 3-Column App Shell */
+    .app-shell {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr) 290px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Sidebars */
+    .sidebar {
+      background-color: var(--panel-bg);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 20px;
+      position: sticky;
+      top: 86px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .sidebar-heading {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .control-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-hint {
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.75;
+      color: var(--text-color);
+    }
+
+    /* Standard Interactive Elements */
+    button {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--panel-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.15s ease, transform 0.05s ease, border-color 0.15s ease;
+      min-height: 44px;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: var(--btn-hover);
+      border-color: var(--accent);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.btn-active {
+      background-color: var(--accent) !important;
+      color: #000000 !important;
+      border-color: var(--accent) !important;
+      font-weight: 800;
+    }
+
+    .btn-mode-toggle {
+      background-color: var(--accent);
+      color: #000000;
+      border: 2px solid var(--accent);
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-mode-toggle.mode-normal {
+      background-color: #2a2a2a;
+      color: #ffffff;
+      border-color: #555555;
+    }
+
+    .stepper-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-font-size {
+      font-size: 18px;
+      font-weight: bold;
+      width: 48px;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .size-badge {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 10px 12px;
+      background: var(--bg-color);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    select {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--panel-border);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+      width: 100%;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tuning-slider {
+      flex: 1;
+      cursor: pointer;
+      accent-color: var(--accent);
+      height: 6px;
+    }
+
+    .slider-val {
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 46px;
+      text-align: right;
+      color: var(--accent);
+    }
+
+    /* Tuning panel collapsible container */
+    .tuning-drawer {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 6px;
+    }
+
+    
+    /* In-View Direct Focus & Diopter Slider Bar */
+    .in-view-slider-panel {
+      background: var(--panel-bg);
+      border: 2px solid var(--accent);
+      border-radius: 14px;
+      padding: 12px 18px;
+      position: sticky;
+      top: 76px;
+      z-index: 35;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .in-view-slider-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .in-view-slider-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .in-view-slider-label strong {
+      font-size: 17px;
+      color: var(--accent);
+    }
+
+    .in-view-subval {
+      font-size: 13px;
+      opacity: 0.85;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .in-view-subval strong {
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .in-view-stepper {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-in-view {
+      width: auto !important;
+      min-height: 34px !important;
+      padding: 4px 12px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      border-radius: 6px !important;
+      border: 1px solid var(--panel-border) !important;
+    }
+
+    .btn-in-view:hover {
+      border-color: var(--accent) !important;
+    }
+
+    .in-view-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .in-view-slider {
+      flex: 1;
+      height: 8px;
+      cursor: pointer;
+      accent-color: var(--accent);
+      border-radius: 4px;
+    }
+
+    .slider-boundary-label {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.75;
+      color: var(--text-color);
+      white-space: nowrap;
+    }
+
+    
+    /* Aspect Switcher Tabs in In-View Panel */
+    .aspect-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+      margin-bottom: 4px;
+    }
+
+    .aspect-tab-btn {
+      width: auto !important;
+      min-height: 32px !important;
+      padding: 4px 10px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      border-radius: 6px !important;
+      background-color: var(--card-bg) !important;
+      border: 1px solid var(--panel-border) !important;
+      color: var(--text-color) !important;
+    }
+
+    .aspect-tab-btn.active {
+      background-color: var(--accent) !important;
+      color: #000000 !important;
+      border-color: var(--accent) !important;
+    }
+
+    /* Center Stage (Reading Area) */
+    .center-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    /* Text Control Bar */
+    .center-toolbar {
+      background-color: var(--panel-bg);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .center-toolbar-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .center-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .center-toolbar-actions button {
+      width: auto;
+      min-height: 38px;
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+
+    /* Text Input Panel */
+    .input-panel {
+      background-color: var(--panel-bg);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .input-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .input-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-color);
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-actions button {
+      width: auto;
+      font-size: 13px;
+      min-height: 36px;
+      padding: 4px 12px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 18px;
+      line-height: 1.5;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    /* Reading Card */
+    .reader-card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 40px 48px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      min-height: 500px;
+      transition: border-color 0.2s ease;
+    }
+
+    .reading-content {
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      letter-spacing: var(--letter-spacing);
+      font-family: var(--font-family);
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      -webkit-text-stroke: var(--stroke-weight) currentColor;
+      text-shadow: var(--text-shadow-acutance);
+      filter: contrast(var(--contrast-level)) url(#acutance-filter);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: geometricPrecision;
+    }
+
+    /* Bionic reading styling */
+    .reading-content b {
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    body.theme-light .reading-content b {
+      color: #000000;
+      font-weight: 900;
+    }
+
+    .drag-active {
+      outline: 4px dashed var(--accent) !important;
+      outline-offset: -8px;
+      background-color: rgba(255, 230, 0, 0.08) !important;
+    }
+
+    /* Reading Ruler */
+    .reading-ruler {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      height: calc(var(--font-size) * var(--line-height));
+      background-color: var(--accent);
+      opacity: 0.22;
+      border-top: 3px solid var(--accent);
+      border-bottom: 3px solid var(--accent);
+      pointer-events: none;
+      z-index: 40;
+      transform: translateY(-50%);
+      display: none;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .reading-ruler.active {
+      display: block;
+    }
+
+    
+    /* Play Store & PWA Export Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background-color: var(--panel-bg);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px 28px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 12px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-close-modal {
+      width: auto !important;
+      min-height: 36px !important;
+      padding: 4px 12px !important;
+      font-size: 14px !important;
+    }
+
+    .pwa-status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .pwa-badge {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .code-box {
+      background: #080808;
+      color: #e6e6e6;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre;
+    }
+
+    .modal-action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-action-row button {
+      width: auto;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background-color: var(--panel-bg);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive Breakdown */
+    @media (max-width: 1100px) {
+      .app-shell {
+        grid-template-columns: 260px minmax(0, 1fr);
+      }
+      .sidebar-right {
+        grid-column: 1 / -1;
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+      }
+      .reader-card {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body class="theme-yellow-black">
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="header-content">
+      <div class="brand-title">
+        <span>🔍</span>
+        <span>Clarity Reader</span>
+        <span class="brand-subtitle">Glasses-Free Ergonomic Display</span>
+      </div>
+
+      <div class="header-quick-actions">
+        <!-- Play Store & PWA Kit Modal Trigger -->
+        <button id="btn-open-pwa-modal" title="View Google Play Store manifest and Service Worker files">
+          <span>📲</span>
+          <span>Play Store Kit</span>
+        </button>
+
+        <!-- Toggle Input Area -->
+        <button id="btn-toggle-input" title="Show or hide text editor">
+          <span id="input-toggle-icon">✏️</span>
+          <span id="input-toggle-text">Edit Text</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3-Column Ergonomic App Shell -->
+  <div class="app-shell">
+
+    <!-- LEFT SIDEBAR: Vision, Prescription & Typography -->
+    <aside class="sidebar sidebar-left" aria-label="Vision and Prescription Settings">
+      <div class="sidebar-heading">
+        <span>👓</span>
+        <span>Vision & Prescription</span>
+      </div>
+
+      <!-- One-Tap Mode Switch -->
+      <div class="control-block">
+        <button id="btn-mode-toggle" class="btn-mode-toggle" title="One-tap switch between Normal and Glasses-Free prescription mode">
+          <span id="mode-icon">👓</span>
+          <span id="mode-text">Glasses-Free (+2.00 D)</span>
+        </button>
+        <span class="control-hint">One tap to switch to standard view</span>
+      </div>
+
+      <!-- Reading Glasses Power Slider Bar -->
+      <div class="control-block">
+        <div class="control-label">
+          <span>Glasses Power (Diopters)</span>
+          <span id="power-val" class="slider-val" style="font-size: 15px; font-weight: 800; color: var(--accent);">+2.00 D</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="power-slider" class="tuning-slider" min="0.50" max="4.00" step="0.25" value="2.00" aria-label="Reading glasses diopter power slider">
+        </div>
+        <div class="slider-ticks" style="display: flex; justify-content: space-between; font-size: 11px; opacity: 0.7; margin-top: 2px;">
+          <span>+0.50 D</span>
+          <span>+2.00 D</span>
+          <span>+4.00 D</span>
+        </div>
+        <select id="power-select" style="display: none;" aria-hidden="true">
+          <option value="2.00">2.00</option>
+        </select>
+      </div>
+
+      <!-- Text Size Magnification -->
+      <div class="control-block">
+        <div class="control-label">
+          <span>Text Size</span>
+        </div>
+        <div class="stepper-row">
+          <button id="btn-decrease" class="btn-font-size" title="Decrease font size" aria-label="Decrease font size">A-</button>
+          <span id="size-indicator" class="size-badge">36px</span>
+          <button id="btn-increase" class="btn-font-size" title="Increase font size" aria-label="Increase font size">A+</button>
+        </div>
+      </div>
+
+      <!-- High-Contrast Color Theme -->
+      <div class="control-block">
+        <label for="theme-select" class="control-label">Contrast Theme</label>
+        <select id="theme-select" aria-label="Select color contrast theme" title="Contrast theme">
+          <option value="theme-yellow-black" selected>Yellow on Black (Max Legibility)</option>
+          <option value="theme-dark">White on Dark</option>
+          <option value="theme-amber">Amber on Charcoal</option>
+          <option value="theme-light">Ink on Cream</option>
+        </select>
+      </div>
+
+      <!-- Typography Font Family -->
+      <div class="control-block">
+        <label for="font-select" class="control-label">Font Style</label>
+        <select id="font-select" aria-label="Select typography font">
+          <option value="hyperlegible" selected>Hyper-Legible (Verdana/Open)</option>
+          <option value="sans">Clean Sans-Serif (System UI)</option>
+          <option value="mono">Distinct Monospace (Spaced)</option>
+          <option value="serif">Grounded Serif (Georgia)</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- CENTER: Main Reading Text in Between -->
+    <main class="center-stage" aria-label="Reading Workspace">
+
+      <!-- Text Management Toolbar -->
+      <section class="center-toolbar">
+        <div class="center-toolbar-title">
+          <span>📖</span>
+          <span>Reading Document</span>
+        </div>
+        <div class="center-toolbar-actions">
+          <input type="file" id="file-input" accept=".txt,.md,.text,text/plain" style="display: none;">
+          <button id="btn-open-file" type="button" title="Open and read a text file">📂 Open File</button>
+          <button id="btn-sample" type="button" title="Load sample article">Load Sample</button>
+          <button id="btn-clear" type="button" title="Clear reading text">Clear</button>
+        </div>
+      </section>
+
+      <!-- Collapsible Text Editor Panel -->
+      <section id="input-section" class="input-panel">
+        <div class="input-header">
+          <h2>Type, Paste, or Drop Text Below</h2>
+          <div class="input-actions"></div>
+        </div>
+        <textarea id="text-input" placeholder="Type or paste any article, email, or book excerpt here to read it comfortably without glasses..."></textarea>
+      </section>
+
+      <!-- In-View Direct Focus & Optical Sharpness Panel -->
+      <section class="in-view-slider-panel" aria-label="Direct In-View Optical Adjustment">
+        <!-- Aspect Selector Tabs -->
+        <div class="aspect-tabs" role="tablist" aria-label="Select optical aspect to adjust">
+          <button id="tab-sharpness" type="button" class="aspect-tab-btn active" title="Adjust edge crispness without changing zoom">✨ Edge Sharpness</button>
+          <button id="tab-stroke" type="button" class="aspect-tab-btn" title="Adjust letter stroke boldness without zooming">🖋️ Stroke Weight</button>
+          <button id="tab-contrast" type="button" class="aspect-tab-btn" title="Adjust edge contrast and glare cutoff">🌓 Edge Contrast</button>
+          <button id="tab-power" type="button" class="aspect-tab-btn" title="Adjust glasses diopter power and text magnification">👓 Glasses Zoom</button>
+        </div>
+
+        <div class="in-view-slider-header">
+          <div class="in-view-slider-label">
+            <span id="in-view-icon">✨</span>
+            <span id="in-view-title">Screen Sharpness:</span>
+            <strong id="in-view-active-val">60%</strong>
+            <span class="in-view-subval">(Power: <strong id="in-view-power-val">+2.00 D</strong>, Size: <strong id="in-view-size-val">37px</strong>)</span>
+          </div>
+          <div class="in-view-stepper">
+            <button id="btn-in-view-decrease" type="button" class="btn-in-view" title="Nudge active setting lower">- 0.25 D</button>
+            <button id="btn-in-view-increase" type="button" class="btn-in-view" title="Nudge active setting higher">+ 0.25 D</button>
+          </div>
+        </div>
+
+        <!-- Dynamic Main In-View Slider -->
+        <div class="in-view-slider-row">
+          <span id="slider-min-label" class="slider-boundary-label">0% (Smooth)</span>
+          <input type="range" id="in-view-power-slider" class="in-view-slider" min="0" max="100" step="5" value="60" aria-label="Active in-view optical adjustment slider">
+          <span id="slider-max-label" class="slider-boundary-label">100% (Razor Crisp)</span>
+        </div>
+      </section>
+
+      <!-- Center Reading Card -->
+      <article class="reader-card">
+        <div id="reading-view" class="reading-content"></div>
+      </article>
+    </main>
+
+    <!-- RIGHT SIDEBAR: Focus Tools, Audio & Optical Sharpness -->
+    <aside class="sidebar sidebar-right" aria-label="Focus Tools and Optical Sharpness Controls">
+      <div class="sidebar-heading">
+        <span>✨</span>
+        <span>Screen Sharpness & Optics</span>
+      </div>
+
+      <!-- Edge Sharpness Slider -->
+      <div class="control-block">
+        <div class="control-label">
+          <span>Edge Sharpness</span>
+          <span id="sharpness-val" class="slider-val">60%</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="sharpness-slider" class="tuning-slider" min="0" max="100" step="5" value="60" aria-label="Edge sharpness acutance slider">
+        </div>
+        <span class="control-hint">Laplacian unsharp matrix edge contrast</span>
+      </div>
+
+      <!-- Stroke Weight Slider -->
+      <div class="control-block">
+        <div class="control-label">
+          <span>Stroke Boldness</span>
+          <span id="stroke-val" class="slider-val">0.3px</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="stroke-slider" class="tuning-slider" min="0" max="1.2" step="0.1" value="0.3" aria-label="Letter stem stroke weight slider">
+        </div>
+        <span class="control-hint">Thickens stems without expanding text size</span>
+      </div>
+
+      <!-- Edge Contrast Slider -->
+      <div class="control-block">
+        <div class="control-label">
+          <span>Edge Contrast</span>
+          <span id="contrast-val" class="slider-val">115%</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="contrast-slider" class="tuning-slider" min="100" max="180" step="5" value="115" aria-label="Micro-contrast boundary slider">
+        </div>
+        <span class="control-hint">Eliminates halation & screen glare bleed</span>
+      </div>
+
+      <div class="sidebar-heading" style="margin-top: 6px;">
+        <span>🎯</span>
+        <span>Reading Tools & Focus</span>
+      </div>
+
+      <!-- Reading Focus Ruler -->
+      <div class="control-block">
+        <button id="btn-toggle-ruler" title="Highlight current reading line">
+          <span>📏</span>
+          <span id="ruler-text">Ruler: Off</span>
+        </button>
+        <span class="control-hint">Glides with cursor to isolate lines</span>
+      </div>
+
+      <!-- Text to Speech -->
+      <div class="control-block">
+        <button id="btn-speech" title="Read text aloud">
+          <span id="speech-icon">🔊</span>
+          <span id="speech-text">Read Aloud</span>
+        </button>
+        <span class="control-hint">Audio read-aloud via web speech</span>
+      </div>
+
+      <!-- Bionic Focus Fixation -->
+      <div class="control-block">
+        <button id="btn-toggle-bionic" title="Bold initial word letters for faster visual fixation">
+          <span>👁️</span>
+          <span id="bionic-text">Bionic: Off</span>
+        </button>
+        <span class="control-hint">Bolds word beginnings for fast eye lock</span>
+      </div>
+
+      <!-- Fine Spacing Section -->
+      <div class="control-block">
+        <button id="btn-toggle-tuning" title="Toggle spacing controls">
+          <span>⚙️</span>
+          <span>Fine-Tune</span>
+        </button>
+      </div>
+
+      <!-- Fine-Tuning Drawer / Sliders -->
+      <div id="tuning-drawer" class="tuning-drawer">
+        <div class="control-block">
+          <div class="control-label">
+            <span>Line Spacing</span>
+            <span id="line-spacing-val" class="slider-val">1.75x</span>
+          </div>
+          <div class="slider-row">
+            <input type="range" id="line-spacing-slider" class="tuning-slider" min="1.4" max="2.4" step="0.1" value="1.75">
+          </div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-label">
+            <span>Letter Spacing</span>
+            <span id="letter-spacing-val" class="slider-val">0.06em</span>
+          </div>
+          <div class="slider-row">
+            <input type="range" id="letter-spacing-slider" class="tuning-slider" min="0" max="0.15" step="0.01" value="0.06">
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- SVG Acutance Unsharp Mask Filter -->
+  <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+    <defs>
+      <filter id="acutance-filter">
+        <feConvolveMatrix id="kernel-matrix" order="3" preserveAlpha="true" kernelMatrix="0 -0.4 0 -0.4 2.6 -0.4 0 -0.4 0"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Floating Line Focus Ruler -->
+  <div id="reading-ruler" class="reading-ruler" aria-hidden="true"></div>
+
+  <!-- Play Store & PWA Export Modal -->
+  <div id="pwa-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pwa-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="pwa-modal-title"><span>📲</span> <span>Google Play Store & PWA Package</span></h2>
+        <button id="btn-close-pwa-modal" type="button" class="btn-close-modal">✕ Close</button>
+      </div>
+
+      <div class="pwa-status-grid">
+        <div class="pwa-badge"><span>✅</span> <span>manifest.json Ready</span></div>
+        <div class="pwa-badge"><span>✅</span> <span>Offline Service Worker</span></div>
+        <div class="pwa-badge"><span>✅</span> <span>512x512 Store Icons</span></div>
+      </div>
+
+      <div class="control-block">
+        <div class="control-label">
+          <span>1. Web App Manifest (manifest.json)</span>
+          <button id="btn-copy-manifest" type="button" class="btn-in-view">📋 Copy manifest.json</button>
+        </div>
+        <pre id="manifest-code-preview" class="code-box">{
+  "name": "Clarity Reader — Glasses-Free Screen Reader",
+  "short_name": "Clarity Reader",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ffe600",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}</pre>
+      </div>
+
+      <div class="control-block">
+        <div class="control-label">
+          <span>2. Offline Service Worker (sw.js)</span>
+          <button id="btn-copy-sw" type="button" class="btn-in-view">📋 Copy sw.js</button>
+        </div>
+        <pre id="sw-code-preview" class="code-box">const CACHE_NAME = 'clarity-reader-v1';
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+});</pre>
+      </div>
+
+      <div class="modal-action-row">
+        <button id="btn-install-pwa" type="button" class="btn-mode-toggle" style="display: none;">📥 Install App to Device</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // App State
+    let currentFontSize = 34;
+    const minFontSize = 18;
+    const maxFontSize = 72;
+    const defaultSample = "Welcome to Clarity Reader!\n\nThis app is crafted to give you an effortless, glasses-free reading experience on any screen.\n\nNotice the layout:\n• The reading text is placed front and center, eliminating side visual clutter.\n• The left sidebar lets you set your reading glasses power, text size, high-contrast themes, and typography.\n• The right sidebar provides focus tools like the Line Ruler, Audio Read-Aloud, Bionic Word Anchors, and Fine Spacing sliders.\n\nTry dropping a text file onto the page or clicking 'Read Aloud' to test it out!";
+
+    // DOM Elements
+    const body = document.body;
+    const btnDecrease = document.getElementById('btn-decrease');
+    const btnIncrease = document.getElementById('btn-increase');
+    const sizeIndicator = document.getElementById('size-indicator');
+    const themeSelect = document.getElementById('theme-select');
+    const textInput = document.getElementById('text-input');
+    const readingView = document.getElementById('reading-view');
+    const btnToggleInput = document.getElementById('btn-toggle-input');
+    const inputSection = document.getElementById('input-section');
+    const inputToggleText = document.getElementById('input-toggle-text');
+    const btnSample = document.getElementById('btn-sample');
+    const btnClear = document.getElementById('btn-clear');
+    const toast = document.getElementById('toast');
+
+    // Helper: Toast notification
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('visible');
+      setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 2000);
+    }
+
+    // Update Font Size
+    function updateFontSize(newSize) {
+      if (newSize < minFontSize) newSize = minFontSize;
+      if (newSize > maxFontSize) newSize = maxFontSize;
+      currentFontSize = newSize;
+      document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+      sizeIndicator.textContent = currentFontSize + 'px';
+      try {
+        localStorage.setItem('clarity_font_size', currentFontSize.toString());
+      } catch (e) {
+        // Safe fallback if localStorage is unavailable
+      }
+    }
+
+    // Set Theme
+    function setTheme(themeName) {
+      body.className = themeName;
+      themeSelect.value = themeName;
+      try {
+        localStorage.setItem('clarity_theme', themeName);
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    // State for Bionic Fixation
+    let bionicActive = false;
+
+    // Helper: Escape HTML to avoid injection
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Helper: Bionic word formatter
+    function applyBionicFormatting(rawText) {
+      const lines = rawText.split('\n');
+      const formattedLines = lines.map(line => {
+        return line.replace(/\b([a-zA-Z0-9]+)\b/g, (match) => {
+          const len = match.length;
+          let splitIdx = 1;
+          if (len === 1) splitIdx = 1;
+          else if (len <= 3) splitIdx = 1;
+          else if (len <= 6) splitIdx = 2;
+          else if (len <= 9) splitIdx = 3;
+          else splitIdx = Math.ceil(len * 0.4);
+
+          const boldPart = escapeHtml(match.slice(0, splitIdx));
+          const restPart = escapeHtml(match.slice(splitIdx));
+          return `<b>${boldPart}</b>${restPart}`;
+        });
+      });
+      return formattedLines.join('\n');
+    }
+
+    // Render Reading View
+    function renderText() {
+      const content = textInput.value.trim();
+      if (!content) {
+        readingView.textContent = "Your text will appear here. Click 'Edit Text' above to paste, open a file, or write something.";
+        readingView.style.opacity = '0.6';
+      } else {
+        readingView.style.opacity = '1';
+        if (bionicActive) {
+          readingView.innerHTML = applyBionicFormatting(textInput.value);
+        } else {
+          readingView.textContent = textInput.value;
+        }
+      }
+      try {
+        localStorage.setItem('clarity_text', textInput.value);
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    // Event Listeners
+    btnDecrease.addEventListener('click', () => {
+      updateFontSize(currentFontSize - 4);
+    });
+
+    btnIncrease.addEventListener('click', () => {
+      updateFontSize(currentFontSize + 4);
+    });
+
+    themeSelect.addEventListener('change', (e) => {
+      setTheme(e.target.value);
+      showToast('Theme updated');
+    });
+
+    textInput.addEventListener('input', renderText);
+
+    btnToggleInput.addEventListener('click', () => {
+      const isHidden = inputSection.style.display === 'none';
+      if (isHidden) {
+        inputSection.style.display = 'block';
+        inputToggleText.textContent = 'Hide Editor';
+      } else {
+        inputSection.style.display = 'none';
+        inputToggleText.textContent = 'Edit Text';
+      }
+    });
+
+    btnSample.addEventListener('click', () => {
+      textInput.value = defaultSample;
+      renderText();
+      showToast('Loaded sample text');
+    });
+
+    btnClear.addEventListener('click', () => {
+      textInput.value = '';
+      renderText();
+      textInput.focus();
+      showToast('Cleared text');
+    });
+
+    // Step 4 Features: Bionic Focus & File Importer
+    const btnToggleBionic = document.getElementById('btn-toggle-bionic');
+    const bionicText = document.getElementById('bionic-text');
+    const btnOpenFile = document.getElementById('btn-open-file');
+    const fileInput = document.getElementById('file-input');
+    const readerCard = document.querySelector('.reader-card');
+
+    // Toggle Bionic Anchor Mode
+    function setBionicState(active) {
+      bionicActive = active;
+      if (bionicActive) {
+        btnToggleBionic.classList.add('btn-active');
+        bionicText.textContent = 'Bionic: On';
+        showToast('Bionic anchors enabled');
+      } else {
+        btnToggleBionic.classList.remove('btn-active');
+        bionicText.textContent = 'Bionic: Off';
+        showToast('Bionic anchors disabled');
+      }
+      renderText();
+      try {
+        localStorage.setItem('clarity_bionic', bionicActive ? 'true' : 'false');
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    btnToggleBionic.addEventListener('click', () => {
+      setBionicState(!bionicActive);
+    });
+
+    // File Input Loader
+    btnOpenFile.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        textInput.value = event.target.result;
+        renderText();
+        showToast(`Loaded "${file.name}"`);
+      };
+      reader.onerror = () => {
+        showToast('Error reading file.');
+      };
+      reader.readAsText(file);
+      fileInput.value = '';
+    });
+
+    // Drag and Drop text files onto reader
+    ['dragenter', 'dragover'].forEach(eventName => {
+      window.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        readerCard.classList.add('drag-active');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      window.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        readerCard.classList.remove('drag-active');
+      });
+    });
+
+    window.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          textInput.value = event.target.result;
+          renderText();
+          showToast(`Imported "${file.name}"`);
+        };
+        reader.onerror = () => {
+          showToast('Could not load dropped file.');
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Step 3 Features: Reading Glasses Prescription & One-Tap Mode Toggle
+    const btnModeToggle = document.getElementById('btn-mode-toggle');
+    const modeIcon = document.getElementById('mode-icon');
+    const modeText = document.getElementById('mode-text');
+    const powerSelect = document.getElementById('power-select');
+    const powerSlider = document.getElementById('power-slider');
+    const powerVal = document.getElementById('power-val');
+
+    // In-View Direct Slider Elements
+    const inViewPowerSlider = document.getElementById('in-view-power-slider');
+    const inViewPowerVal = document.getElementById('in-view-power-val');
+    const inViewSizeVal = document.getElementById('in-view-size-val');
+    const btnInViewDecrease = document.getElementById('btn-in-view-decrease');
+    const btnInViewIncrease = document.getElementById('btn-in-view-increase');
+
+    // Fine-Tuning Controls
+    const btnToggleTuning = document.getElementById('btn-toggle-tuning');
+    const tuningDrawer = document.getElementById('tuning-drawer');
+    const fontSelect = document.getElementById('font-select');
+    const lineSpacingSlider = document.getElementById('line-spacing-slider');
+    const lineSpacingVal = document.getElementById('line-spacing-val');
+    const letterSpacingSlider = document.getElementById('letter-spacing-slider');
+    const letterSpacingVal = document.getElementById('letter-spacing-val');
+
+    let isGlassesFreeMode = true;
+    let selectedPower = 2.00;
+
+    // Font family map
+    const fontFamilies = {
+      hyperlegible: 'Verdana, Geneva, "Trebuchet MS", sans-serif',
+      sans: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      mono: '"SF Mono", "Courier New", Courier, monospace',
+      serif: 'Georgia, Cambria, "Times New Roman", serif'
+    };
+
+    // Calculate optimal visual parameters for a given reading glasses power (in Diopters)
+    function calculatePrescriptionSettings(power) {
+      const p = parseFloat(power);
+      const calculatedFontSize = Math.round(20 + (p * 8.5));
+      const calculatedLineHeight = parseFloat((1.55 + (p * 0.10)).toFixed(2));
+      const calculatedLetterSpacing = parseFloat((0.025 + (p * 0.018)).toFixed(3));
+
+      return {
+        fontSize: calculatedFontSize,
+        lineHeight: calculatedLineHeight,
+        letterSpacing: calculatedLetterSpacing
+      };
+    }
+
+    // Apply Spacing & Font
+    function applyLineHeight(val) {
+      document.documentElement.style.setProperty('--line-height', val);
+      lineSpacingSlider.value = val;
+      lineSpacingVal.textContent = val + 'x';
+    }
+
+    function applyLetterSpacing(val) {
+      document.documentElement.style.setProperty('--letter-spacing', val + 'em');
+      letterSpacingSlider.value = val;
+      letterSpacingVal.textContent = val + 'em';
+    }
+
+    function applyFont(fontKey) {
+      const family = fontFamilies[fontKey] || fontFamilies.hyperlegible;
+      document.documentElement.style.setProperty('--font-family', family);
+      fontSelect.value = fontKey;
+      try {
+        localStorage.setItem('clarity_font_choice', fontKey);
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    // Apply Prescription profile
+    function applyPrescriptionPower(power, notify = true) {
+      selectedPower = parseFloat(power);
+      const settings = calculatePrescriptionSettings(selectedPower);
+
+      updateFontSize(settings.fontSize);
+      applyLineHeight(settings.lineHeight);
+      applyLetterSpacing(settings.letterSpacing);
+
+      if (powerSlider) powerSlider.value = selectedPower;
+      if (powerVal) powerVal.textContent = `+${selectedPower.toFixed(2)} D`;
+      if (powerSelect) powerSelect.value = selectedPower.toString();
+
+      if (inViewPowerSlider) inViewPowerSlider.value = selectedPower;
+      if (inViewPowerVal) inViewPowerVal.textContent = `+${selectedPower.toFixed(2)} D`;
+      if (inViewSizeVal) inViewSizeVal.textContent = `${settings.fontSize}px`;
+
+      isGlassesFreeMode = true;
+      btnModeToggle.classList.remove('mode-normal');
+      modeIcon.textContent = '👓';
+      modeText.textContent = `Glasses-Free (+${selectedPower.toFixed(2)} D)`;
+
+      if (notify) {
+        showToast(`Auto-adjusted for +${selectedPower.toFixed(2)} D power`);
+      }
+
+      try {
+        localStorage.setItem('clarity_power', selectedPower.toString());
+        localStorage.setItem('clarity_mode', 'glasses-free');
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    // Apply Normal standard view
+    function applyNormalView() {
+      isGlassesFreeMode = false;
+      updateFontSize(18);
+      applyLineHeight(1.5);
+      applyLetterSpacing(0.01);
+
+      btnModeToggle.classList.add('mode-normal');
+      modeIcon.textContent = '📄';
+      modeText.textContent = 'Normal View (18px)';
+
+      showToast('Switched to Normal View. Tap to restore Glasses-Free.');
+
+      try {
+        localStorage.setItem('clarity_mode', 'normal');
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    // One-Tap Toggle Handler
+    btnModeToggle.addEventListener('click', () => {
+      if (isGlassesFreeMode) {
+        applyNormalView();
+      } else {
+        applyPrescriptionPower(powerSlider ? powerSlider.value : selectedPower, true);
+      }
+    });
+
+    // Prescription Slider Handlers (Live update while dragging + Toast on release)
+    if (powerSlider) {
+      powerSlider.addEventListener('input', (e) => {
+        applyPrescriptionPower(e.target.value, false);
+      });
+
+      powerSlider.addEventListener('change', (e) => {
+        applyPrescriptionPower(e.target.value, true);
+      });
+    }
+
+
+    // Optical Sharpness & Acutance Engine
+    let currentSharpness = 60; // 0 to 100
+    let currentStroke = 0.3;   // 0.0 to 1.2 px
+    let currentContrast = 115; // 100 to 180 %
+    let activeAspect = 'sharpness'; // 'sharpness' | 'stroke' | 'contrast' | 'power'
+
+    const kernelMatrix = document.getElementById('kernel-matrix');
+    const tabSharpness = document.getElementById('tab-sharpness');
+    const tabStroke = document.getElementById('tab-stroke');
+    const tabContrast = document.getElementById('tab-contrast');
+    const tabPower = document.getElementById('tab-power');
+
+    const inViewIcon = document.getElementById('in-view-icon');
+    const inViewTitle = document.getElementById('in-view-title');
+    const inViewActiveVal = document.getElementById('in-view-active-val');
+    const sliderMinLabel = document.getElementById('slider-min-label');
+    const sliderMaxLabel = document.getElementById('slider-max-label');
+
+    const sharpnessSlider = document.getElementById('sharpness-slider');
+    const sharpnessVal = document.getElementById('sharpness-val');
+    const strokeSlider = document.getElementById('stroke-slider');
+    const strokeVal = document.getElementById('stroke-val');
+    const contrastSlider = document.getElementById('contrast-slider');
+    const contrastVal = document.getElementById('contrast-val');
+
+    // Apply Edge Sharpness (Laplacian Convolution + Subpixel Acutance Halo)
+    function applySharpness(val, notify = false) {
+      currentSharpness = parseInt(val, 10);
+      if (isNaN(currentSharpness)) currentSharpness = 60;
+      if (currentSharpness < 0) currentSharpness = 0;
+      if (currentSharpness > 100) currentSharpness = 100;
+
+      // Update SVG Convolution Matrix kernel: 0 -k 0 -k (1+4k) -k 0 -k 0
+      const k = (currentSharpness / 100) * 0.75;
+      const center = (1 + (4 * k)).toFixed(2);
+      const edge = (-k).toFixed(2);
+      if (kernelMatrix) {
+        kernelMatrix.setAttribute('kernelMatrix', `0 ${edge} 0 ${edge} ${center} ${edge} 0 ${edge} 0`);
+      }
+
+      // Update CSS Acutance Shadow
+      const shadowWeight = ((currentSharpness / 100) * 0.9).toFixed(1);
+      const acutanceShadow = currentSharpness > 10 ? `0 0 ${shadowWeight}px currentColor` : 'none';
+      document.documentElement.style.setProperty('--text-shadow-acutance', acutanceShadow);
+
+      if (sharpnessSlider) sharpnessSlider.value = currentSharpness;
+      if (sharpnessVal) sharpnessVal.textContent = currentSharpness + '%';
+
+      if (activeAspect === 'sharpness') {
+        if (inViewPowerSlider) inViewPowerSlider.value = currentSharpness;
+        if (inViewActiveVal) inViewActiveVal.textContent = currentSharpness + '%';
+      }
+
+      if (notify) showToast(`Edge sharpness set to ${currentSharpness}%`);
+
+      try {
+        localStorage.setItem('clarity_sharpness', currentSharpness.toString());
+      } catch (e) {}
+    }
+
+    // Apply Stroke Weight (Stem Boldness)
+    function applyStrokeWeight(val, notify = false) {
+      currentStroke = parseFloat(val);
+      if (isNaN(currentStroke)) currentStroke = 0.3;
+      if (currentStroke < 0) currentStroke = 0;
+      if (currentStroke > 1.2) currentStroke = 1.2;
+
+      document.documentElement.style.setProperty('--stroke-weight', currentStroke.toFixed(1) + 'px');
+
+      if (strokeSlider) strokeSlider.value = currentStroke;
+      if (strokeVal) strokeVal.textContent = currentStroke.toFixed(1) + 'px';
+
+      if (activeAspect === 'stroke') {
+        if (inViewPowerSlider) inViewPowerSlider.value = currentStroke;
+        if (inViewActiveVal) inViewActiveVal.textContent = currentStroke.toFixed(1) + 'px';
+      }
+
+      if (notify) showToast(`Stroke boldness set to ${currentStroke.toFixed(1)}px`);
+
+      try {
+        localStorage.setItem('clarity_stroke', currentStroke.toString());
+      } catch (e) {}
+    }
+
+    // Apply Micro-Contrast & Glare Cutoff
+    function applyContrast(val, notify = false) {
+      currentContrast = parseInt(val, 10);
+      if (isNaN(currentContrast)) currentContrast = 115;
+      if (currentContrast < 100) currentContrast = 100;
+      if (currentContrast > 180) currentContrast = 180;
+
+      document.documentElement.style.setProperty('--contrast-level', currentContrast + '%');
+
+      if (contrastSlider) contrastSlider.value = currentContrast;
+      if (contrastVal) contrastVal.textContent = currentContrast + '%';
+
+      if (activeAspect === 'contrast') {
+        if (inViewPowerSlider) inViewPowerSlider.value = currentContrast;
+        if (inViewActiveVal) inViewActiveVal.textContent = currentContrast + '%';
+      }
+
+      if (notify) showToast(`Edge contrast set to ${currentContrast}%`);
+
+      try {
+        localStorage.setItem('clarity_contrast', currentContrast.toString());
+      } catch (e) {}
+    }
+
+    // Switch Active In-View Aspect Tab
+    function setActiveAspect(aspect) {
+      activeAspect = aspect;
+      [tabSharpness, tabStroke, tabContrast, tabPower].forEach(tab => {
+        if (tab) tab.classList.remove('active');
+      });
+
+      if (aspect === 'sharpness') {
+        if (tabSharpness) tabSharpness.classList.add('active');
+        inViewIcon.textContent = '✨';
+        inViewTitle.textContent = 'Screen Sharpness:';
+        inViewActiveVal.textContent = currentSharpness + '%';
+        sliderMinLabel.textContent = '0% (Smooth)';
+        sliderMaxLabel.textContent = '100% (Razor Crisp)';
+        inViewPowerSlider.min = 0;
+        inViewPowerSlider.max = 100;
+        inViewPowerSlider.step = 5;
+        inViewPowerSlider.value = currentSharpness;
+      } else if (aspect === 'stroke') {
+        if (tabStroke) tabStroke.classList.add('active');
+        inViewIcon.textContent = '🖋️';
+        inViewTitle.textContent = 'Stroke Boldness:';
+        inViewActiveVal.textContent = currentStroke.toFixed(1) + 'px';
+        sliderMinLabel.textContent = '0.0px (Normal)';
+        sliderMaxLabel.textContent = '1.2px (Thick Stems)';
+        inViewPowerSlider.min = 0;
+        inViewPowerSlider.max = 1.2;
+        inViewPowerSlider.step = 0.1;
+        inViewPowerSlider.value = currentStroke;
+      } else if (aspect === 'contrast') {
+        if (tabContrast) tabContrast.classList.add('active');
+        inViewIcon.textContent = '🌓';
+        inViewTitle.textContent = 'Edge Contrast:';
+        inViewActiveVal.textContent = currentContrast + '%';
+        sliderMinLabel.textContent = '100% (Standard)';
+        sliderMaxLabel.textContent = '180% (High Contrast)';
+        inViewPowerSlider.min = 100;
+        inViewPowerSlider.max = 180;
+        inViewPowerSlider.step = 5;
+        inViewPowerSlider.value = currentContrast;
+      } else if (aspect === 'power') {
+        if (tabPower) tabPower.classList.add('active');
+        inViewIcon.textContent = '👓';
+        inViewTitle.textContent = 'Glasses Power:';
+        inViewActiveVal.textContent = `+${selectedPower.toFixed(2)} D`;
+        sliderMinLabel.textContent = '+0.50 D (Mild)';
+        sliderMaxLabel.textContent = '+4.00 D (High)';
+        inViewPowerSlider.min = 0.50;
+        inViewPowerSlider.max = 4.00;
+        inViewPowerSlider.step = 0.25;
+        inViewPowerSlider.value = selectedPower;
+      }
+    }
+
+    if (tabSharpness) tabSharpness.addEventListener('click', () => setActiveAspect('sharpness'));
+    if (tabStroke) tabStroke.addEventListener('click', () => setActiveAspect('stroke'));
+    if (tabContrast) tabContrast.addEventListener('click', () => setActiveAspect('contrast'));
+    if (tabPower) tabPower.addEventListener('click', () => setActiveAspect('power'));
+
+    // Sidebar Sharpness, Stroke & Contrast Sliders
+    if (sharpnessSlider) {
+      sharpnessSlider.addEventListener('input', (e) => applySharpness(e.target.value, false));
+      sharpnessSlider.addEventListener('change', (e) => applySharpness(e.target.value, true));
+    }
+
+    if (strokeSlider) {
+      strokeSlider.addEventListener('input', (e) => applyStrokeWeight(e.target.value, false));
+      strokeSlider.addEventListener('change', (e) => applyStrokeWeight(e.target.value, true));
+    }
+
+    if (contrastSlider) {
+      contrastSlider.addEventListener('input', (e) => applyContrast(e.target.value, false));
+      contrastSlider.addEventListener('change', (e) => applyContrast(e.target.value, true));
+    }
+
+    // In-View Slider Handlers (Direct adjustment while looking at the text for whichever aspect is active)
+    if (inViewPowerSlider) {
+      inViewPowerSlider.addEventListener('input', (e) => {
+        if (activeAspect === 'sharpness') {
+          applySharpness(e.target.value, false);
+        } else if (activeAspect === 'stroke') {
+          applyStrokeWeight(e.target.value, false);
+        } else if (activeAspect === 'contrast') {
+          applyContrast(e.target.value, false);
+        } else if (activeAspect === 'power') {
+          applyPrescriptionPower(e.target.value, false);
+        }
+      });
+
+      inViewPowerSlider.addEventListener('change', (e) => {
+        if (activeAspect === 'sharpness') {
+          applySharpness(e.target.value, true);
+        } else if (activeAspect === 'stroke') {
+          applyStrokeWeight(e.target.value, true);
+        } else if (activeAspect === 'contrast') {
+          applyContrast(e.target.value, true);
+        } else if (activeAspect === 'power') {
+          applyPrescriptionPower(e.target.value, true);
+        }
+      });
+    }
+
+    if (btnInViewDecrease) {
+      btnInViewDecrease.addEventListener('click', () => {
+        if (activeAspect === 'sharpness') {
+          applySharpness(Math.max(0, currentSharpness - 5), true);
+        } else if (activeAspect === 'stroke') {
+          applyStrokeWeight(Math.max(0, currentStroke - 0.1), true);
+        } else if (activeAspect === 'contrast') {
+          applyContrast(Math.max(100, currentContrast - 5), true);
+        } else if (activeAspect === 'power') {
+          const nextPower = Math.max(0.50, selectedPower - 0.25);
+          applyPrescriptionPower(nextPower, true);
+        }
+      });
+    }
+
+    if (btnInViewIncrease) {
+      btnInViewIncrease.addEventListener('click', () => {
+        if (activeAspect === 'sharpness') {
+          applySharpness(Math.min(100, currentSharpness + 5), true);
+        } else if (activeAspect === 'stroke') {
+          applyStrokeWeight(Math.min(1.2, currentStroke + 0.1), true);
+        } else if (activeAspect === 'contrast') {
+          applyContrast(Math.min(180, currentContrast + 5), true);
+        } else if (activeAspect === 'power') {
+          const nextPower = Math.min(4.00, selectedPower + 0.25);
+          applyPrescriptionPower(nextPower, true);
+        }
+      });
+    }
+
+    if (powerSelect) {
+      powerSelect.addEventListener('change', (e) => {
+        applyPrescriptionPower(e.target.value, true);
+      });
+    }
+
+    // Toggle Fine-Tuning Drawer
+    btnToggleTuning.addEventListener('click', () => {
+      const isClosed = tuningDrawer.style.display === 'none';
+      if (isClosed) {
+        tuningDrawer.style.display = 'flex';
+        btnToggleTuning.classList.add('btn-active');
+      } else {
+        tuningDrawer.style.display = 'none';
+        btnToggleTuning.classList.remove('btn-active');
+      }
+    });
+
+    // Fine-Tuning Event Listeners
+    fontSelect.addEventListener('change', (e) => {
+      applyFont(e.target.value);
+      showToast('Font style updated');
+    });
+
+    lineSpacingSlider.addEventListener('input', (e) => {
+      applyLineHeight(parseFloat(e.target.value));
+    });
+
+    letterSpacingSlider.addEventListener('input', (e) => {
+      applyLetterSpacing(parseFloat(e.target.value));
+    });
+
+    // Step 2 Features: Focus Ruler & Text-to-Speech
+    const btnToggleRuler = document.getElementById('btn-toggle-ruler');
+    const rulerText = document.getElementById('ruler-text');
+    const readingRuler = document.getElementById('reading-ruler');
+    const btnSpeech = document.getElementById('btn-speech');
+    const speechIcon = document.getElementById('speech-icon');
+    const speechText = document.getElementById('speech-text');
+
+    let rulerActive = false;
+    let isSpeaking = false;
+    let speechUtterance = null;
+
+    // Toggle Reading Ruler
+    function setRulerState(active) {
+      rulerActive = active;
+      if (rulerActive) {
+        readingRuler.classList.add('active');
+        btnToggleRuler.classList.add('btn-active');
+        rulerText.textContent = 'Ruler: On';
+        showToast('Focus ruler enabled');
+      } else {
+        readingRuler.classList.remove('active');
+        btnToggleRuler.classList.remove('btn-active');
+        rulerText.textContent = 'Ruler: Off';
+        showToast('Focus ruler disabled');
+      }
+      try {
+        localStorage.setItem('clarity_ruler', rulerActive ? 'true' : 'false');
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    btnToggleRuler.addEventListener('click', () => {
+      setRulerState(!rulerActive);
+    });
+
+    // Move Ruler on Mouse / Touch
+    function updateRulerPosition(clientY) {
+      if (!rulerActive) return;
+      readingRuler.style.top = clientY + 'px';
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      updateRulerPosition(e.clientY);
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches.length > 0) {
+        updateRulerPosition(e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    // Text to Speech
+    function stopSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      isSpeaking = false;
+      btnSpeech.classList.remove('btn-active');
+      speechIcon.textContent = '🔊';
+      speechText.textContent = 'Read Aloud';
+    }
+
+    function startSpeech() {
+      if (!('speechSynthesis' in window)) {
+        showToast('Text-to-speech is not supported in this browser.');
+        return;
+      }
+
+      const text = textInput.value.trim();
+      if (!text) {
+        showToast('Please type or paste some text first.');
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      speechUtterance = new SpeechSynthesisUtterance(text);
+      speechUtterance.rate = 0.95;
+      speechUtterance.pitch = 1.0;
+
+      speechUtterance.onstart = () => {
+        isSpeaking = true;
+        btnSpeech.classList.add('btn-active');
+        speechIcon.textContent = '⏹️';
+        speechText.textContent = 'Stop';
+        showToast('Reading aloud...');
+      };
+
+      speechUtterance.onend = () => {
+        stopSpeech();
+        showToast('Finished reading.');
+      };
+
+      speechUtterance.onerror = (err) => {
+        console.warn('Speech synthesis notice:', err);
+        stopSpeech();
+      };
+
+      window.speechSynthesis.speak(speechUtterance);
+    }
+
+    btnSpeech.addEventListener('click', () => {
+      if (isSpeaking) {
+        stopSpeech();
+      } else {
+        startSpeech();
+      }
+    });
+
+    // Stop speech when text changes
+    textInput.addEventListener('input', () => {
+      if (isSpeaking) {
+        stopSpeech();
+      }
+      renderText();
+    });
+
+    // Initialize with saved state or defaults
+    function init() {
+      let savedTheme = 'theme-yellow-black';
+      let savedPower = '2.00';
+      let savedMode = 'glasses-free';
+      let savedFont = 'hyperlegible';
+      let savedText = defaultSample;
+
+      try {
+        const storedTheme = localStorage.getItem('clarity_theme');
+        if (storedTheme) savedTheme = storedTheme;
+
+        const storedPower = localStorage.getItem('clarity_power');
+        if (storedPower) savedPower = storedPower;
+
+        const storedMode = localStorage.getItem('clarity_mode');
+        if (storedMode) savedMode = storedMode;
+
+        const storedFont = localStorage.getItem('clarity_font_choice');
+        if (storedFont) savedFont = storedFont;
+
+        const storedText = localStorage.getItem('clarity_text');
+        if (storedText !== null) savedText = storedText;
+      } catch (e) {
+        // Ignore storage errors in sandboxed contexts
+      }
+
+      let savedRuler = false;
+      let savedBionic = false;
+      let savedSharpness = 60;
+      let savedStroke = 0.3;
+      let savedContrast = 115;
+      try {
+        savedRuler = localStorage.getItem('clarity_ruler') === 'true';
+        savedBionic = localStorage.getItem('clarity_bionic') === 'true';
+        const stSharpness = localStorage.getItem('clarity_sharpness');
+        if (stSharpness !== null) savedSharpness = parseInt(stSharpness, 10);
+        const stStroke = localStorage.getItem('clarity_stroke');
+        if (stStroke !== null) savedStroke = parseFloat(stStroke);
+        const stContrast = localStorage.getItem('clarity_contrast');
+        if (stContrast !== null) savedContrast = parseInt(stContrast, 10);
+      } catch (e) {
+        // Safe fallback
+      }
+
+      setTheme(savedTheme);
+      if (powerSlider) powerSlider.value = savedPower;
+      if (powerVal) powerVal.textContent = `+${parseFloat(savedPower).toFixed(2)} D`;
+      if (powerSelect) powerSelect.value = savedPower;
+      applyFont(savedFont);
+
+      if (savedMode === 'normal') {
+        applyNormalView();
+      } else {
+        applyPrescriptionPower(savedPower, false);
+      }
+
+      textInput.value = savedText;
+      renderText();
+      if (savedRuler) {
+        setRulerState(true);
+      }
+      if (savedBionic) {
+        setBionicState(true);
+      }
+      applySharpness(savedSharpness, false);
+      applyStrokeWeight(savedStroke, false);
+      applyContrast(savedContrast, false);
+      setActiveAspect('sharpness');
+    }
+
+
+    // Play Store & PWA Modal Controls
+    const btnOpenPwaModal = document.getElementById('btn-open-pwa-modal');
+    const btnClosePwaModal = document.getElementById('btn-close-pwa-modal');
+    const pwaModal = document.getElementById('pwa-modal');
+    const btnCopyManifest = document.getElementById('btn-copy-manifest');
+    const btnCopySw = document.getElementById('btn-copy-sw');
+    const manifestPreview = document.getElementById('manifest-code-preview');
+    const swPreview = document.getElementById('sw-code-preview');
+    const btnInstallPwa = document.getElementById('btn-install-pwa');
+
+    function copyTextSafe(text, label) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(`Copied ${label} to clipboard!`);
+        }).catch(() => {
+          fallbackCopy(text, label);
+        });
+      } else {
+        fallbackCopy(text, label);
+      }
+    }
+
+    function fallbackCopy(text, label) {
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Copied ${label} to clipboard!`);
+      } catch (e) {
+        showToast('Copy not supported in this frame');
+      }
+      document.body.removeChild(temp);
+    }
+
+    if (btnOpenPwaModal && pwaModal) {
+      btnOpenPwaModal.addEventListener('click', () => {
+        pwaModal.classList.add('open');
+      });
+    }
+
+    if (btnClosePwaModal && pwaModal) {
+      btnClosePwaModal.addEventListener('click', () => {
+        pwaModal.classList.remove('open');
+      });
+    }
+
+    if (pwaModal) {
+      pwaModal.addEventListener('click', (e) => {
+        if (e.target === pwaModal) pwaModal.classList.remove('open');
+      });
+    }
+
+    if (btnCopyManifest && manifestPreview) {
+      btnCopyManifest.addEventListener('click', () => {
+        copyTextSafe(manifestPreview.textContent, 'manifest.json');
+      });
+    }
+
+    if (btnCopySw && swPreview) {
+      btnCopySw.addEventListener('click', () => {
+        copyTextSafe(swPreview.textContent, 'sw.js');
+      });
+    }
+
+    // Native PWA Install Prompt Support
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (btnInstallPwa) btnInstallPwa.style.display = 'inline-flex';
+    });
+
+    if (btnInstallPwa) {
+      btnInstallPwa.addEventListener('click', () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          deferredInstallPrompt.userChoice.then(() => {
+            deferredInstallPrompt = null;
+            btnInstallPwa.style.display = 'none';
+          });
+        }
+      });
+    }
+
+
+    // Register Service Worker for Play Store TWA & Offline PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.warn('ServiceWorker registration note:', err);
+        });
+      });
+    }
+    init();
+  </script>
+</body>
+</html>
